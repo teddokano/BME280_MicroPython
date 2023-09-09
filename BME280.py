@@ -10,7 +10,6 @@ class BME280_base:
 	
 	https://www.bosch-sensortec.com/products/environmental-sensors/humidity-sensors-bme280/
 	"""
-
 	def __init__( self ):
 		"""
 		BME280 initializer
@@ -223,7 +222,7 @@ class BME280_I2C( BME280_base ):
 			return data
 		
 class BME280_SPI( BME280_base ):
-	def __init__( self, spi, cs ):
+	def __init__( self, spi, cs = None ):
 		"""
 		BME280 initializer
 	
@@ -234,8 +233,9 @@ class BME280_SPI( BME280_base ):
 		cs : obj
 			machine.Pin instance for chip_select
 		"""
+		
 		self.__spi	= spi
-		self.__cs	= cs
+		self.__cs	= cs if cs else Pin( 13, Pin.OUT )
 		
 		self.__cs.value( 1 )
 		
@@ -286,29 +286,52 @@ class BME280_SPI( BME280_base ):
 		self.__spi.write_readinto( data, data )
 		self.__cs.value( 1 )
 
-		for i in data:
-			print( f"0x{i:02X} ", end="" )
-
-		print( "" )
-
 		if len is 1:
 			return list( data )[ 1 ]
 		else:
 			return data[ 1: ]
-		
+
+def BME280( interface, address = DEFAILT_ADDRESS, cs = None ):
+	"""
+	A constructor interface for PCF2131
+
+	Parameters
+	----------
+	interface	: obj
+		machine.I2C or machine.SPI object
+	address		: int (option)
+		If need to specify (for I2C interface)
+	cs			: machine.Pin object (option)
+		If need to specify (for SPI interface)
+
+	Returns
+	-------
+	BME280_I2C or BME280_SPI object
+		returns BME280_I2C when interface is I2C
+		returns BME280_SPI when interface is SPI
+
+	Examples
+	--------
+	For using I2C
+		>>> intf = I2C( 0, freq = (400 * 1000) )
+		>>> rtc  = BME280( intf )
+	For using SPI
+		>>> intf = SPI( 0, 500 * 1000, cs = 0 )
+		>>> rtc  = BME280( intf )
+	
+	"""
+	if isinstance( interface, I2C ):
+		return BME280_I2C( interface, address )
+
+	if isinstance( interface, SPI ):
+		return BME280_SPI( interface, cs )
+
+
 
 def main():
-	"""
-	i2c	= I2C( 0, sda = Pin( 0 ), scl = Pin( 1 ), freq = 400_000 )
-	bme	= BME280_I2C( i2c )
-	"""
-	
-	spi		= SPI( 1, 1000000, sck = Pin( 10 ), mosi = Pin( 11 ), miso = Pin( 12 ) )
-	bme	= BME280_SPI( spi, Pin( 13, Pin.OUT ) )
-	
-	print( "start" )
-	sleep( 3 )
-	print( "=====" )
+	#intf	= I2C( 0, sda = Pin( 0 ), scl = Pin( 1 ), freq = 400_000 )
+	intf	= SPI( 1, 1000000, sck = Pin( 10 ), mosi = Pin( 11 ), miso = Pin( 12 ) )
+	bme		= BME280( intf )
 	
 	bme.write( 0xF4, 0x03 )
 	bme.show_dump()
