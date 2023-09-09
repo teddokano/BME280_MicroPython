@@ -5,7 +5,23 @@ from	struct	import	unpack
 DEFAILT_ADDRESS		= 0xEC >>1
 
 class BME280:
+	"""
+	A class to operate a combined humidity and pressure sensor: BME280
+	
+	https://www.bosch-sensortec.com/products/environmental-sensors/humidity-sensors-bme280/
+	"""
+
 	def __init__( self, i2c, address = DEFAILT_ADDRESS ):
+		"""
+		BME280 initializer
+	
+		Parameters
+		----------
+		i2c : obj
+			machine.I2C instance
+		address : int
+			I2C target (device) address
+		"""
 		self.__i2c	= i2c
 		self.__addr	= address
 		
@@ -27,23 +43,75 @@ class BME280:
 		self.write( 0xF4, (s << 5) | (s << 2) | 0x3 )
 	
 	def temperature( self ):
+		"""
+		get temperature value in degree-C
+		
+		Returns
+		-------
+		float : temperature value in degree-C
+		"""
 		data 	= self.read( 0xFA, 3 )
 		adc_T_High, adc_T_Low	= unpack( ">HB", data )
-		adc_T	= adc_T_High << 4 | adc_T_Low >> 4
+		return self.compensate_T( adc_T_High << 4 | adc_T_Low >> 4 )
 	
+	def pressure( self ):
+		"""
+		get pressure value in hPa
+		
+		Returns
+		-------
+		float : pressure value in hPa
+		"""
+		data 	= self.read( 0xF7, 3 )
+		adc_P_High, adc_P_Low	= unpack( ">HB", data )
+		return self.compensate_P( adc_P_High << 4 | adc_P_Low >> 4 )
+
+	def humidity( self ):
+		"""
+		get humidity value in %RH
+		
+		Returns
+		-------
+		float : humidity value in %RH
+		"""
+		data 	= self.read( 0xFD, 2 )
+		adc_H	= unpack( ">H", data )[ 0 ]
+		return self.compensate_H( adc_H )
+		
+	def compensate_T( self, adc_T ):
+		"""
+		Calculate temperature from sensor read value
+		
+		Parameters
+		----------
+		adc_T : int
+			read value form register 0xFA-0xFC as big-endian 20 bit integer
+			
+		Returns
+		-------
+		float : temperature value in degree-C
+
+		"""
 		var1	= ((((adc_T >> 3) - (self.dig_T1 << 1))) * (self.dig_T2)) >> 11
 		var2	= (((((adc_T >> 4) - (self.dig_T1)) * ((adc_T >> 4) - (self.dig_T1))) >> 12) * (self.dig_T3)) >> 14
-		
 		self.t_fine	= var1 + var2
-		
 		T		= (self.t_fine * 5 + 128) >> 8
 		return T / 100
 
-	def pressure( self ):
-		data 	= self.read( 0xF7, 3 )
-		adc_P_High, adc_P_Low	= unpack( ">HB", data )
-		adc_P	= adc_P_High << 4 | adc_P_Low >> 4
+	def compensate_P( self, adc_P ):
+		"""
+		Calculate pressure from sensor read value
+		
+		Parameters
+		----------
+		adc_P : int
+			read value form register 0xF7-0xF9 as big-endian 20 bit integer
+			
+		Returns
+		-------
+		float : temperature value in hPa
 
+		"""
 		var1 = self.t_fine - 128000
 		var2 = var1 * var1 * self.dig_P6
 		var2 = var2 + ((var1 * self.dig_P5) << 17)
@@ -61,10 +129,20 @@ class BME280:
 		p = ((p + var1 + var2) >> 8) + (self.dig_P7 << 4)
 		return p / 25600
 
-	def humidity( self ):
-		data 	= self.read( 0xFD, 2 )
-		adc_H	= unpack( ">H", data )[ 0 ]
-
+	def compensate_H( self, adc_H ):
+		"""
+		Calculate humidity from sensor read value
+		
+		Parameters
+		----------
+		adc_H : int
+			read value form register 0xFD and 0xFE as big-endian 16 bit integer
+			
+		Returns
+		-------
+		float : temperature value in %RH
+		
+		"""
 		v_x1_u32r = self.t_fine - 76800
 		v_x1_u32r = (((((adc_H << 14) - (self.dig_H4 << 20) - (self.dig_H5 * v_x1_u32r)) + 16384) >> 15) * (((((((v_x1_u32r * self.dig_H6) >> 10) * (((v_x1_u32r * self.dig_H3) >> 11) + 32768)) >> 10) + 2097152) * self.dig_H2 + 8192) >> 14))
 		v_x1_u32r = (v_x1_u32r - (((((v_x1_u32r >> 15) * (v_x1_u32r >> 15)) >> 7) * self.dig_H1) >> 4))
@@ -73,9 +151,35 @@ class BME280:
 		return (v_x1_u32r >> 12) / 1024
 
 	def write( self, r, v ):
-		self.__i2c.writeto( self.__addr, bytearray( [ r, v ] ) )
+		"""
+		Write register
+		
+		Parameters
+		----------
+		r : int
+			Register address			
+		v : int
+			Value to write into the register	
+		"""
+	self.__i2c.writeto( self.__addr, bytearray( [ r, v ] ) )
 		
 	def read( self, r, len = None ):
+		"""
+		Read register
+		
+		Parameters
+		----------
+		r : int
+			Register address			
+		len : int (option)
+			Read length	
+
+		Returns
+		-------
+		int : 		If len was not given or 1
+		bytearray : If len was >1
+		
+		"""
 		if len is None:
 			len	= 1
 
@@ -88,6 +192,14 @@ class BME280:
 			return data
 		
 	def show_reg( self, r ):
+		"""
+		Print register value
+		
+		Parameters
+		----------
+		r : int
+			Register address			
+		"""
 		print( "reg:0x{:02X} = 0x{:02X}".format( r, self.read( r ) ) )
 		
 	def show_dump( self ):
