@@ -293,7 +293,7 @@ class BME280_SPI( BME280_base ):
 
 def BME280( interface, address = DEFAILT_ADDRESS, cs = None ):
 	"""
-	A constructor interface for PCF2131
+	A constructor interface for BME280
 
 	Parameters
 	----------
