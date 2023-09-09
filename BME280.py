@@ -329,8 +329,8 @@ def BME280( interface, address = DEFAILT_ADDRESS, cs = None ):
 
 
 def main():
-	#intf	= I2C( 0, sda = Pin( 0 ), scl = Pin( 1 ), freq = 400_000 )
-	intf	= SPI( 1, 1000000, sck = Pin( 10 ), mosi = Pin( 11 ), miso = Pin( 12 ) )
+	intf	= I2C( 0, sda = Pin( 0 ), scl = Pin( 1 ), freq = 400_000 )
+	#intf	= SPI( 1, 1000000, sck = Pin( 10 ), mosi = Pin( 11 ), miso = Pin( 12 ) )
 	bme		= BME280( intf )
 	
 	bme.write( 0xF4, 0x03 )
