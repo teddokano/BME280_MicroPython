@@ -1,17 +1,17 @@
-from	machine	import	Pin, I2C
+from	machine	import	Pin, I2C, SPI
 from	utime	import	sleep
 from	struct	import	unpack
 
 DEFAILT_ADDRESS		= 0xEC >>1
 
-class BME280:
+class BME280_base:
 	"""
 	A class to operate a combined humidity and pressure sensor: BME280
 	
 	https://www.bosch-sensortec.com/products/environmental-sensors/humidity-sensors-bme280/
 	"""
 
-	def __init__( self, i2c, address = DEFAILT_ADDRESS ):
+	def __init__( self ):
 		"""
 		BME280 initializer
 	
@@ -22,9 +22,6 @@ class BME280:
 		address : int
 			I2C target (device) address
 		"""
-		self.__i2c	= i2c
-		self.__addr	= address
-		
 		(self.dig_T1, self.dig_T2, self.dig_T3)		= unpack( "<Hhh", self.read( 0x88, 6 ) )
 		
 		(self.dig_P1, self.dig_P2, self.dig_P3, self.dig_P4, self.dig_P5, self.dig_P6, 
@@ -150,6 +147,40 @@ class BME280:
 		v_x1_u32r = 419430400 if (v_x1_u32r > 419430400) else v_x1_u32r
 		return (v_x1_u32r >> 12) / 1024
 
+	def show_reg( self, r ):
+		"""
+		Print register value
+		
+		Parameters
+		----------
+		r : int
+			Register address			
+		"""
+		print( "reg:0x{:02X} = 0x{:02X}".format( r, self.read( r ) ) )
+		
+	def show_dump( self ):
+		reg_list	= [ 0xF2, 0xF3, 0xF4, 0xF5 ]
+		
+		for r in reg_list:
+			self.show_reg( r )
+					
+class BME280_I2C( BME280_base ):
+	def __init__( self, i2c, address = DEFAILT_ADDRESS ):
+		"""
+		BME280 initializer
+	
+		Parameters
+		----------
+		i2c : obj
+			machine.I2C instance
+		address : int
+			I2C target (device) address
+		"""
+		self.__i2c	= i2c
+		self.__addr	= address
+		
+		super().__init__()
+
 	def write( self, r, v ):
 		"""
 		Write register
@@ -161,8 +192,8 @@ class BME280:
 		v : int
 			Value to write into the register	
 		"""
-	self.__i2c.writeto( self.__addr, bytearray( [ r, v ] ) )
-		
+		self.__i2c.writeto( self.__addr, bytearray( [ r, v ] ) )
+
 	def read( self, r, len = None ):
 		"""
 		Read register
@@ -191,26 +222,93 @@ class BME280:
 		else:
 			return data
 		
-	def show_reg( self, r ):
+class BME280_SPI( BME280_base ):
+	def __init__( self, spi, cs ):
 		"""
-		Print register value
+		BME280 initializer
+	
+		Parameters
+		----------
+		spi : obj
+			machine.SPI instance
+		cs : obj
+			machine.Pin instance for chip_select
+		"""
+		self.__spi	= spi
+		self.__cs	= cs
+		
+		self.__cs.value( 1 )
+		
+		super().__init__()
+
+
+	def write( self, r, v ):
+		"""
+		Write register
 		
 		Parameters
 		----------
 		r : int
 			Register address			
+		v : int
+			Value to write into the register	
 		"""
-		print( "reg:0x{:02X} = 0x{:02X}".format( r, self.read( r ) ) )
 		
-	def show_dump( self ):
-		reg_list	= [ 0xF2, 0xF3, 0xF4, 0xF5 ]
+		data	= bytearray( [ r & 0x7F, v ] )
 		
-		for r in reg_list:
-			self.show_reg( r )
-					
+		self.__cs.value( 0 )
+		self.__spi.write_readinto( data, data )
+		self.__cs.value( 1 )
+
+	def read( self, r, len = None ):
+		"""
+		Read register
+		
+		Parameters
+		----------
+		r : int
+			Register address			
+		len : int (option)
+			Read length	
+
+		Returns
+		-------
+		int : 		If len was not given or 1
+		bytearray : If len was >1
+		
+		"""
+		if len is None:
+			len	= 1
+			
+		data	= bytearray( [ r | 0x80 ] + [ 0xFF for _ in range( len ) ] )
+
+		self.__cs.value( 0 )
+		self.__spi.write_readinto( data, data )
+		self.__cs.value( 1 )
+
+		for i in data:
+			print( f"0x{i:02X} ", end="" )
+
+		print( "" )
+
+		if len is 1:
+			return list( data )[ 1 ]
+		else:
+			return data[ 1: ]
+		
+
 def main():
+	"""
 	i2c	= I2C( 0, sda = Pin( 0 ), scl = Pin( 1 ), freq = 400_000 )
-	bme	= BME280( i2c )
+	bme	= BME280_I2C( i2c )
+	"""
+	
+	spi		= SPI( 1, 1000000, sck = Pin( 10 ), mosi = Pin( 11 ), miso = Pin( 12 ) )
+	bme	= BME280_SPI( spi, Pin( 13, Pin.OUT ) )
+	
+	print( "start" )
+	sleep( 3 )
+	print( "=====" )
 	
 	bme.write( 0xF4, 0x03 )
 	bme.show_dump()
