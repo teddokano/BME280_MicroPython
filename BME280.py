@@ -2,17 +2,20 @@ from	machine	import	Pin, I2C
 from	utime	import	sleep
 from	struct	import	unpack
 
-ADR				= 0xEC >>1
+DEFAILT_ADDRESS		= 0xEC >>1
 
 class BME280:
-	def __init__( self, i2c, address = ADR ):
+	def __init__( self, i2c, address = DEFAILT_ADDRESS ):
 		self.__i2c	= i2c
-		self.__addr	= ADR
+		self.__addr	= address
 		
-		(self.dig_T1, self.dig_T2, self.dig_T3)	= unpack( "<Hhh", self.read( 0x88, 6 ) )
+		(self.dig_T1, self.dig_T2, self.dig_T3)		= unpack( "<Hhh", self.read( 0x88, 6 ) )
+		
 		(self.dig_P1, self.dig_P2, self.dig_P3, self.dig_P4, self.dig_P5, self.dig_P6, 
 			self.dig_P7, self.dig_P8, self.dig_P9)	= unpack( "<Hhhhhhhhh", self.read( 0x8E, 18 ) )
+			
 		self.dig_H1	= self.read( 0xA1 )
+		
 		(self.dig_H2, self.dig_H3, E4, E5, E6, self.dig_H6)	= unpack( "<hBbbbb", self.read( 0xE1, 7 ) )
 		self.dig_H4	= (E4 << 4) | (E5 & 0x0F)
 		self.dig_H5 = (E6 << 4) | (E5 >> 4)
@@ -43,19 +46,19 @@ class BME280:
 
 		var1 = self.t_fine - 128000
 		var2 = var1 * var1 * self.dig_P6
-		var2 = var2 + ((var1*self.dig_P5)<<17)
-		var2 = var2 + ((self.dig_P4)<<35)
-		var1 = ((var1 * var1 * self.dig_P3)>>8) + ((var1 * self.dig_P2)<<12)
-		var1 = (((1<<47)+var1))*(self.dig_P1)>>33
+		var2 = var2 + ((var1 * self.dig_P5) << 17)
+		var2 = var2 + (self.dig_P4 << 35)
+		var1 = ((var1 * var1 * self.dig_P3) >> 8) + (var1 * self.dig_P2 << 12)
+		var1 = (((1 << 47) + var1)) * self.dig_P1 >> 33
 		
 		if (var1 == 0):
 			return 0
 		
-		p = 1048576-adc_P
-		p = (((p<<31)-var2)*3125)//var1
-		var1 = (self.dig_P9 * (p>>13) * (p>>13)) >> 25
+		p = 1048576 - adc_P
+		p = (((p << 31) - var2) * 3125) // var1
+		var1 = (self.dig_P9 * (p >> 13) * (p >> 13)) >> 25
 		var2 = (self.dig_P8 * p) >> 19
-		p = ((p + var1 + var2) >> 8) + (self.dig_P7<<4)
+		p = ((p + var1 + var2) >> 8) + (self.dig_P7 << 4)
 		return p / 25600
 
 	def humidity( self ):
@@ -95,22 +98,12 @@ class BME280:
 					
 def main():
 	i2c	= I2C( 0, sda = Pin( 0 ), scl = Pin( 1 ), freq = 400_000 )
-	print( i2c.scan() )
-
-	bme	= BME280( i2c, address = 0xEC )
+	bme	= BME280( i2c )
 	
 	bme.write( 0xF4, 0x03 )
-
 	bme.show_dump()
 
 	while True:
-		"""
-		if not (bme.read( 0xF3 ) & 0x04):
-			print( "!" )
-		else:
-			print( "-", end = "" )
-		"""
-		
 		print( f"bme.temperature() = {bme.temperature()}" )
 		print( f"bme.pressure()    = {bme.pressure()}" )
 		print( f"bme.humidity()    = {bme.humidity()}" )
