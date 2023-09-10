@@ -22,10 +22,7 @@ bme.write( 0xF4, 0x03 )
 bme.show_dump()
 
 while True:
-	print( f"bme.temperature() = {bme.temperature()}" )
-	print( f"bme.pressure()    = {bme.pressure()}" )
-	print( f"bme.humidity()    = {bme.humidity()}" )
-	print( "" )
-	
+	t, p, h	= bme.read()
+	print( f"{t:5.2f} ℃, {p:7.2f} hPa, {h:5.2f} %RH" )
 	sleep( 1 )
 ```

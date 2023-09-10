@@ -21,22 +21,28 @@ class BME280_base:
 		address : int
 			I2C target (device) address
 		"""
-		(self.dig_T1, self.dig_T2, self.dig_T3)		= unpack( "<Hhh", self.read( 0x88, 6 ) )
+		(self.dig_T1, self.dig_T2, self.dig_T3)		= unpack( "<Hhh", self.read_reg( 0x88, 6 ) )
 		
 		(self.dig_P1, self.dig_P2, self.dig_P3, self.dig_P4, self.dig_P5, self.dig_P6, 
-			self.dig_P7, self.dig_P8, self.dig_P9)	= unpack( "<Hhhhhhhhh", self.read( 0x8E, 18 ) )
+			self.dig_P7, self.dig_P8, self.dig_P9)	= unpack( "<Hhhhhhhhh", self.read_reg( 0x8E, 18 ) )
 			
-		self.dig_H1	= self.read( 0xA1 )
+		self.dig_H1	= self.read_reg( 0xA1 )
 		
-		(self.dig_H2, self.dig_H3, E4, E5, E6, self.dig_H6)	= unpack( "<hBbbbb", self.read( 0xE1, 7 ) )
+		(self.dig_H2, self.dig_H3, E4, E5, E6, self.dig_H6)	= unpack( "<hBbbbb", self.read_reg( 0xE1, 7 ) )
 		self.dig_H4	= (E4 << 4) | (E5 & 0x0F)
 		self.dig_H5 = (E6 << 4) | (E5 >> 4)
 		
 		self.t_fine	= 0
 
 		s	= 0x01
-		self.write( 0xF2, s )
-		self.write( 0xF4, (s << 5) | (s << 2) | 0x3 )
+		self.write_reg( 0xF2, s )
+		self.write_reg( 0xF4, (s << 5) | (s << 2) | 0x3 )
+	
+	def read( self ):
+		data 	= self.read_reg( 0xF7, 8 )		
+		pH, pL, tH, tL, h	= unpack( ">HBHBH", data )
+
+		return self.compensate_T( tH << 4 | tL >> 4 ), self.compensate_P( pH << 4 | pL >> 4 ), self.compensate_H( h )
 	
 	def temperature( self ):
 		"""
@@ -46,7 +52,7 @@ class BME280_base:
 		-------
 		float : temperature value in degree-C
 		"""
-		data 	= self.read( 0xFA, 3 )
+		data 	= self.read_reg( 0xFA, 3 )
 		adc_T_High, adc_T_Low	= unpack( ">HB", data )
 		return self.compensate_T( adc_T_High << 4 | adc_T_Low >> 4 )
 	
@@ -58,7 +64,7 @@ class BME280_base:
 		-------
 		float : pressure value in hPa
 		"""
-		data 	= self.read( 0xF7, 3 )
+		data 	= self.read_reg( 0xF7, 3 )
 		adc_P_High, adc_P_Low	= unpack( ">HB", data )
 		return self.compensate_P( adc_P_High << 4 | adc_P_Low >> 4 )
 
@@ -70,7 +76,7 @@ class BME280_base:
 		-------
 		float : humidity value in %RH
 		"""
-		data 	= self.read( 0xFD, 2 )
+		data 	= self.read_reg( 0xFD, 2 )
 		adc_H	= unpack( ">H", data )[ 0 ]
 		return self.compensate_H( adc_H )
 		
@@ -155,7 +161,7 @@ class BME280_base:
 		r : int
 			Register address			
 		"""
-		print( "reg:0x{:02X} = 0x{:02X}".format( r, self.read( r ) ) )
+		print( "reg:0x{:02X} = 0x{:02X}".format( r, self.read_reg( r ) ) )
 		
 	def show_dump( self ):
 		reg_list	= [ 0xF2, 0xF3, 0xF4, 0xF5 ]
@@ -180,7 +186,7 @@ class BME280_I2C( BME280_base ):
 		
 		super().__init__()
 
-	def write( self, r, v ):
+	def write_reg( self, r, v ):
 		"""
 		Write register
 		
@@ -193,7 +199,7 @@ class BME280_I2C( BME280_base ):
 		"""
 		self.__i2c.writeto( self.__addr, bytearray( [ r, v ] ) )
 
-	def read( self, r, len = None ):
+	def read_reg( self, r, len = None ):
 		"""
 		Read register
 		
@@ -242,7 +248,7 @@ class BME280_SPI( BME280_base ):
 		super().__init__()
 
 
-	def write( self, r, v ):
+	def write_reg( self, r, v ):
 		"""
 		Write register
 		
@@ -260,7 +266,7 @@ class BME280_SPI( BME280_base ):
 		self.__spi.write_readinto( data, data )
 		self.__cs.value( 1 )
 
-	def read( self, r, len = None ):
+	def read_reg( self, r, len = None ):
 		"""
 		Read register
 		
@@ -333,15 +339,12 @@ def main():
 	#intf	= SPI( 1, 1000000, sck = Pin( 10 ), mosi = Pin( 11 ), miso = Pin( 12 ) )
 	bme		= BME280( intf )
 	
-	bme.write( 0xF4, 0x03 )
+	bme.write_reg( 0xF4, 0x03 )
 	bme.show_dump()
 
 	while True:
-		print( f"bme.temperature() = {bme.temperature()}" )
-		print( f"bme.pressure()    = {bme.pressure()}" )
-		print( f"bme.humidity()    = {bme.humidity()}" )
-		print( "" )
-		
+		t, p, h	= bme.read()
+		print( f"{t:5.2f} ℃, {p:7.2f} hPa, {h:5.2f} %RH" )
 		sleep( 1 )
 		
 if __name__ == "__main__":
