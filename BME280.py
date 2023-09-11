@@ -1,3 +1,96 @@
+from	machine	import	Pin
+from	utime	import	sleep_ms
+
+class bbI2C:
+	bit_order	= tuple( n for n in range( 7, -1, -1 ) )
+	
+	def __init__( self, sda_pin, scl_pin ):
+		self.sda	= self.pin_init( sda_pin )
+		self.scl	= self.pin_init( scl_pin )
+		
+	def pin_init( self, pin_id ):
+		pin	= Pin( pin_id, Pin.OUT )
+		pin.value( 0 )
+		pin.init( Pin.IN )
+		
+		return pin
+		
+	def start_condition( self ):
+		self.sda.init( Pin.OUT )
+		self.scl.init( Pin.OUT )
+
+	def stop_condition( self ):
+		self.sda.init( Pin.OUT )
+		self.scl.init( Pin.IN )
+		self.sda.init( Pin.IN )
+		
+	def send_bytes( self, bytes ):
+		nack	= False
+		
+		for b in bytes:
+			for i in self.bit_order:
+				self.scl.init( Pin.OUT )
+				if (b >> i) & 1:
+					self.sda.init( Pin.IN )
+				else:
+					self.sda.init( Pin.OUT )
+				
+				self.scl.init( Pin.IN )
+			
+			self.scl.init( Pin.OUT )
+			self.sda.init( Pin.IN )
+
+			self.scl.init( Pin.IN )
+			nack	= self.sda.value()
+			self.scl.init( Pin.OUT )
+
+			if nack:
+				return nack
+		
+		return nack
+			
+	def receive_bytes( self, length ):
+		bytes	= []
+		for byte_count in range( length ):
+			b	= 0
+			self.sda.init( Pin.IN )
+
+			for i in self.bit_order:
+				self.scl.init( Pin.OUT )
+				self.scl.init( Pin.IN )
+				b	|= self.sda.value() << i
+				
+			self.scl.init( Pin.OUT )
+			
+			if byte_count == (length - 1):
+				self.sda.init( Pin.IN )
+			else:
+				self.sda.init( Pin.OUT )
+						
+			self.scl.init( Pin.IN )
+			self.scl.init( Pin.OUT )
+			
+			bytes	+= [ b ]
+
+		return bytes
+
+	def writeto( self, addr, data ):
+		addr	<<= 1
+		data	= [ addr & ~0x01 ] + list( data )
+		self.start_condition()
+		self.send_bytes( data )
+		self.stop_condition()
+		
+	def readfrom( self, addr, length, repeated_start = True ):
+		addr	<<= 1
+		self.start_condition()
+		self.send_bytes( [ addr | 0x01 ] )
+		data	= self.receive_bytes( length )
+		self.stop_condition()
+		
+		return bytearray( data )
+
+
 from	machine	import	Pin, I2C, SPI
 from	utime	import	sleep
 from	struct	import	unpack
@@ -22,7 +115,7 @@ class BME280_base:
 			I2C target (device) address
 		"""
 		(self.dig_T1, self.dig_T2, self.dig_T3)		= unpack( "<Hhh", self.read_reg( 0x88, 6 ) )
-		
+
 		(self.dig_P1, self.dig_P2, self.dig_P3, self.dig_P4, self.dig_P5, self.dig_P6, 
 			self.dig_P7, self.dig_P8, self.dig_P9)	= unpack( "<Hhhhhhhhh", self.read_reg( 0x8E, 18 ) )
 			
@@ -186,6 +279,9 @@ class BME280_I2C( BME280_base ):
 		
 		super().__init__()
 
+		print( "BME280_I2C.__init__" )
+
+
 	def write_reg( self, r, v ):
 		"""
 		Write register
@@ -197,6 +293,13 @@ class BME280_I2C( BME280_base ):
 		v : int
 			Value to write into the register	
 		"""
+
+		print( "BME280_I2C.write_reg" )
+
+		print( f"r = {r}" )
+		print( f"v = {v}" )
+
+
 		self.__i2c.writeto( self.__addr, bytearray( [ r, v ] ) )
 
 	def read_reg( self, r, len = None ):
@@ -326,7 +429,7 @@ def BME280( interface, address = DEFAILT_ADDRESS, cs = None ):
 		>>> rtc  = BME280( intf )
 	
 	"""
-	if isinstance( interface, I2C ):
+	if isinstance( interface, I2C ) or isinstance( interface, bbI2C ):
 		return BME280_I2C( interface, address )
 
 	if isinstance( interface, SPI ):
@@ -335,7 +438,8 @@ def BME280( interface, address = DEFAILT_ADDRESS, cs = None ):
 
 
 def main():
-	intf	= I2C( 0, sda = Pin( 0 ), scl = Pin( 1 ), freq = 400_000 )
+	#intf	= I2C( 0, sda = Pin( 0 ), scl = Pin( 1 ), freq = 400_000 )
+	intf	= bbI2C( 0, 1 )
 	#intf	= SPI( 1, 1000000, sck = Pin( 10 ), mosi = Pin( 11 ), miso = Pin( 12 ) )
 	bme		= BME280( intf )
 	
