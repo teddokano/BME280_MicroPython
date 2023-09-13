@@ -323,8 +323,8 @@ def BME280( interface, address = DEFAILT_ADDRESS, cs = None ):
 	Returns
 	-------
 	BME280_I2C or BME280_SPI object
-		returns BME280_I2C when interface is I2C
-		returns BME280_SPI when interface is SPI
+		returns BME280_I2C when interface is I2C or bbI2C
+		returns BME280_SPI when interface is SPI or bbSPI
 
 	Examples
 	--------
