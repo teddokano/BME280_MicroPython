@@ -1,3 +1,13 @@
+"""
+BME280 (combined humidity and pressure sensor) operation sample
+This code demonstrates basic feature of BME280. 
+The BME280 supports I2C and SPI interfaces. Both interfaces are supported in this code. 
+On addition to that, bbI2C and bbSPI classes are supported to perform the operation with those "bit-bang" interface classes. 
+For bbI2C and bbSPI, see following repositories
+	bbI2C: https://github.com/teddokano/bitbang_I2C_controller_MicroPython
+	bbSPI: https://github.com/teddokano/bitbang_SPI_controller_MicroPython
+"""
+
 from	machine	import	Pin, I2C, SPI
 from	utime	import	sleep
 from	struct	import	unpack
@@ -225,7 +235,7 @@ class BME280_I2C( BME280_base ):
 		if len is None:
 			len	= 1
 
-		n_of_ack	= self.__i2c.writeto( self.__addr, bytearray( [ r ] ), stop = False )
+		n_of_ack	= self.__i2c.writeto( self.__addr, bytearray( [ r ] ), False )
 		
 		if n_of_ack != 2:
 			raise BME280_I2C_Error( f"NACK reseived with target address:0x{self.__addr:02X}. ACK count:{n_of_ack}" )
