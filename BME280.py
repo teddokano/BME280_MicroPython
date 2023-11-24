@@ -34,6 +34,7 @@ class BME280_base:
 		address : int
 			I2C target (device) address
 		"""
+		
 		(self.dig_T1, self.dig_T2, self.dig_T3)		= unpack( "<Hhh", self.read_reg( 0x88, 6 ) )
 
 		(self.dig_P1, self.dig_P2, self.dig_P3, self.dig_P4, self.dig_P5, self.dig_P6, 
@@ -235,11 +236,8 @@ class BME280_I2C( BME280_base ):
 		if len is None:
 			len	= 1
 
-		n_of_ack	= self.__i2c.writeto( self.__addr, bytearray( [ r ] ), False )
+		self.__i2c.writeto( self.__addr, bytearray( [ r ] ), False )
 		
-		if n_of_ack != 2:
-			raise BME280_I2C_Error( f"NACK reseived with target address:0x{self.__addr:02X}. ACK count:{n_of_ack}" )
-			
 		data	= self.__i2c.readfrom( self.__addr, len )
 		
 		if len is 1:
@@ -355,14 +353,12 @@ def BME280( interface, address = DEFAILT_ADDRESS, cs = None ):
 
 
 def main():
-	#intf	= I2C( 0, sda = Pin( 0 ), scl = Pin( 1 ), freq = 400_000 )
+	#intf	= I2C( 0, sda = Pin( 0 ), scl = Pin( 1 ) )
 	intf	= bbI2C( 0, 1 )
 	#intf	= SPI( 1, 1000000, sck = Pin( 10 ), mosi = Pin( 11 ), miso = Pin( 12 ) )
 	#intf	= bbSPI( sck = 10, mosi = 11, miso = 12, cs = 13, mode = 3 )
-	
-	bme		= BME280( intf )
-	
-	bme.write_reg( 0xF4, 0x27 )
+		
+	bme		= BME280( intf )	
 	bme.show_dump()
 
 	while True:
