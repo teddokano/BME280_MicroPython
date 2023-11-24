@@ -13,7 +13,7 @@ from	utime	import	sleep
 from	struct	import	unpack
 
 from	bbI2C	import	bbI2C
-from	bbSPI	import	bbSPI
+#from	bbSPI	import	bbSPI
 
 DEFAILT_ADDRESS		= 0xEC >>1
 
@@ -362,7 +362,7 @@ def main():
 	
 	bme		= BME280( intf )
 	
-	bme.write_reg( 0xF4, 0x03 )
+	bme.write_reg( 0xF4, 0x27 )
 	bme.show_dump()
 
 	while True:
