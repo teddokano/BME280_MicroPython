@@ -183,9 +183,6 @@ class BME280_base:
 		for r in reg_list:
 			self.show_reg( r )
 
-class BME280_I2C_Error( Exception ):
-    pass
-
 class BME280_I2C( BME280_base ):
 	def __init__( self, i2c, address = DEFAILT_ADDRESS ):
 		"""
