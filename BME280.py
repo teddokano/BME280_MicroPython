@@ -13,7 +13,7 @@ from	utime	import	sleep
 from	struct	import	unpack
 
 from	bbI2C	import	bbI2C
-#from	bbSPI	import	bbSPI
+from	bbSPI	import	bbSPI
 
 DEFAILT_ADDRESS		= 0xEC >>1
 
@@ -351,10 +351,10 @@ def BME280( interface, address = DEFAILT_ADDRESS, cs = None ):
 
 def main():
 	#intf	= I2C( 0, sda = Pin( 0 ), scl = Pin( 1 ) )
-	intf	= bbI2C( 0, 1 )
-	#intf	= SPI( 1, 1000000, sck = Pin( 10 ), mosi = Pin( 11 ), miso = Pin( 12 ) )
-	#intf	= bbSPI( sck = 10, mosi = 11, miso = 12, cs = 13, mode = 3 )
-		
+	#intf	= bbI2C( 0, 1 )
+	#intf	= SPI( 1, 1000000, sck = Pin( 10 ), mosi = Pin( 11 ), miso = Pin( 12 ), polarity = 1, phase = 1 )
+	intf	= bbSPI( sck = 10, mosi = 11, miso = 12, cs = 13, polarity = 1, phase = 1 )
+	
 	bme		= BME280( intf )	
 	bme.show_dump()
 
