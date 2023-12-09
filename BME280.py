@@ -8,7 +8,7 @@ For bbI2C and bbSPI, see following repositories
 	bbSPI: https://github.com/teddokano/bitbang_SPI_controller_MicroPython
 	
 # Lisence
-This project is licensed under the MIT License, see the LICENSE.txt file for details
+This project is licensed under the MIT License, see LICENSE.txt file for details in 
 https://github.com/teddokano/BME280_MicroPython
 """
 
