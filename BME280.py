@@ -6,6 +6,10 @@ On addition to that, bbI2C and bbSPI classes are supported to perform the operat
 For bbI2C and bbSPI, see following repositories
 	bbI2C: https://github.com/teddokano/bitbang_I2C_controller_MicroPython
 	bbSPI: https://github.com/teddokano/bitbang_SPI_controller_MicroPython
+	
+# Lisence
+This project is licensed under the MIT License, see the LICENSE.txt file for details
+https://github.com/teddokano/BME280_MicroPython
 """
 
 from	machine	import	Pin, I2C, SPI
