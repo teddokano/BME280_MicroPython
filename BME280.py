@@ -12,7 +12,7 @@ https://github.com/teddokano/BME280_MicroPython
 """
 
 from	machine	import	Pin, I2C, SPI
-from	utime	import	sleep
+from	utime	import	sleep, sleep_ms
 from	struct	import	unpack
 
 from	bbI2C	import	bbI2C
@@ -58,6 +58,8 @@ class BME280_base:
 		s	= 0x01
 		self.write_reg( 0xF2, s )
 		self.write_reg( 0xF4, (s << 5) | (s << 2) | 0x3 )
+		
+		sleep_ms( 14 )	# t_maesure(max) : waiting for first measurement complete (datasheet 9.1)
 	
 	def read( self ):
 		data 	= self.read_reg( 0xF7, 8 )		
