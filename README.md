@@ -18,9 +18,6 @@ else:
 	
 bme		= BME280( intf )
 
-bme.write( 0xF4, 0x03 )
-bme.show_dump()
-
 while True:
 	t, p, h	= bme.read()
 	print( f"{t:5.2f} ℃, {p:7.2f} hPa, {h:5.2f} %RH" )
