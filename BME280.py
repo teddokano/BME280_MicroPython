@@ -38,11 +38,7 @@ class BME280_base:
 			I2C target (device) address
 		"""
 		
-		while True:
-			# This loop is a workwround for MicroPython v1.22.0
-			(self.dig_T1, self.dig_T2, self.dig_T3)		= unpack( "<Hhh", self.read_reg( 0x88, 6 ) )
-			if self.dig_T1 or self.dig_T2 or self.dig_T3:
-				break
+		(self.dig_T1, self.dig_T2, self.dig_T3)		= unpack( "<Hhh", self.read_reg( 0x88, 6 ) )
 
 		(self.dig_P1, self.dig_P2, self.dig_P3, self.dig_P4, self.dig_P5, self.dig_P6, 
 			self.dig_P7, self.dig_P8, self.dig_P9)	= unpack( "<Hhhhhhhhh", self.read_reg( 0x8E, 18 ) )
@@ -268,7 +264,8 @@ class BME280_SPI( BME280_base ):
 		self.__cs	= cs if cs else Pin( 13, Pin.OUT )
 		
 		self.__cs.value( 1 )
-		
+		sleep_ms( 2 )	# Wait until SPI read become ready
+
 		super().__init__()
 
 
