@@ -8,6 +8,7 @@ This code operation is confirmed with MicroPython v1.22.0 on Raspberry Pi Pico
 
 ![bme280.jpg](https://github.com/teddokano/BME280_MicroPython/blob/main/reference/pic/bme280.jpg)
 
+
 ## Purpose of this code
 ### A sample of BME280 operation using both I²C and SPI interfaces
 This code had been written to show samples of basic I²C and SPI operation using BME280.  
@@ -45,22 +46,32 @@ while True:
 ### When the `BME280.py` is executed alone
 A main function is executed.  
 In the main function, there are 4 lines to declare the `intf` instance. One of them should be enabled and others needed to be comment-out.  
+The I2C and SPI can be enabled and used in default MicroPython environment.  
 
 
 ```python
+...
+..
 def main():
     intf	= I2C( 0, sda = Pin( 0 ), scl = Pin( 1 ) )
     #intf	= bbI2C( sda = Pin( 0 ), scl = Pin( 1 ) )
     #intf	= SPI( 1, 1000000, sck = Pin( 10 ), mosi = Pin( 11 ), miso = Pin( 12 ) )
-    #intf	= bbSPI( sck = Pin( 10 ), mosi = Pin( 11 ), miso = Pin( 12 ), cs = Pin( 13 ) )
+    #intf	= bbSPI( sck = Pin( 10 ), mosi = Pin( 11 ), miso = Pin( 12 ) )
     
     bme		= BME280( intf )
     ...
     ..
 ```
 
+### If you want to try `bbI2C` and/or `bbSPI` ...
+
+The `bbI2C` and `bbSPI` can be enabled if those libraies are installed in executable path. Those libraries are available on [bbI2C](https://github.com/teddokano/bitbang_I2C_controller_MicroPython) and [bbSPI](https://github.com/teddokano/bitbang_SPI_controller_MicroPython).  
+The bbI2C.py and bbSPI.py are needed to be copied in to MicroPython device. 
+
+![bb_libs_installed.png](https://github.com/teddokano/BME280_MicroPython/blob/main/reference/pic/bb_libs_installed.png)
 
 ## Hardware
+
 ![sch_I2C.png](https://github.com/teddokano/BME280_MicroPython/blob/main/reference/sch/sch_I2C.png)  
 ![sch_SPI.png](https://github.com/teddokano/BME280_MicroPython/blob/main/reference/sch/sch_SPI.png)  
 
