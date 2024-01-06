@@ -15,8 +15,15 @@ from	machine	import	Pin, I2C, SPI
 from	utime	import	sleep, sleep_ms
 from	struct	import	unpack
 
-from	bbI2C	import	bbI2C
-from	bbSPI	import	bbSPI
+try:
+	from	bbI2C	import	bbI2C
+except ImportError:
+	pass
+	
+try:
+	from	bbSPI	import	bbSPI
+except ImportError:
+	pass
 
 DEFAILT_ADDRESS		= 0xEC >>1
 
@@ -356,8 +363,8 @@ def BME280( interface, address = DEFAILT_ADDRESS, cs = None ):
 
 
 def main():
-	#intf	= I2C( 0, sda = Pin( 0 ), scl = Pin( 1 ) )
-	intf	= bbI2C( sda = Pin( 0 ), scl = Pin( 1 ) )
+	intf	= I2C( 0, sda = Pin( 0 ), scl = Pin( 1 ) )
+	#intf	= bbI2C( sda = Pin( 0 ), scl = Pin( 1 ) )
 	#intf	= SPI( 1, 1000000, sck = Pin( 10 ), mosi = Pin( 11 ), miso = Pin( 12 ) )
 	#intf	= bbSPI( sck = Pin( 10 ), mosi = Pin( 11 ), miso = Pin( 12 ), cs = Pin( 13 ) )
 	
