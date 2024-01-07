@@ -268,7 +268,9 @@ class BME280_SPI( BME280_base ):
 		"""
 		
 		self.__spi	= spi
-		self.__cs	= cs if cs else Pin( 13, Pin.OUT )
+		self.__cs	= cs if cs else Pin( 13 )
+		
+		self.__cs.init( Pin.OUT )
 		
 		self.__cs.value( 1 )
 		sleep_ms( 2 )	# Wait until SPI read become ready
@@ -366,7 +368,7 @@ def main():
 	intf	= I2C( 0, sda = Pin( 0 ), scl = Pin( 1 ) )
 	#intf	= bbI2C( sda = Pin( 0 ), scl = Pin( 1 ) )
 	#intf	= SPI( 1, 1000000, sck = Pin( 10 ), mosi = Pin( 11 ), miso = Pin( 12 ) )
-	#intf	= bbSPI( sck = Pin( 10 ), mosi = Pin( 11 ), miso = Pin( 12 ), cs = Pin( 13 ) )
+	#intf	= bbSPI( sck = Pin( 10 ), mosi = Pin( 11 ), miso = Pin( 12 ) )
 	
 	bme		= BME280( intf )	
 	bme.show_dump()
