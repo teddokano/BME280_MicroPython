@@ -1,4 +1,4 @@
-# BME280
+# BME280 class library
 
 ## What is this?
 Sample code to operate a combined humidity and pressure sensor: [BME280](https://www.bosch-sensortec.com/products/environmental-sensors/humidity-sensors-bme280/).   
@@ -14,7 +14,7 @@ _AE-BME280: A sensor module using BME280_
 This code had been written to show samples of basic I²C and SPI operation using BME280.  
 The BME280 supports I²C and SPI interfaces. The interface can be switched by CSB pin setting. When the CSB pin is tied to VDDIO, it is configured for I²C. 
 For SPI, the CSB is used as a ChipSelect signal input.  
-For more details, please refer section 6.1 of [BME280 datacheet](https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme280-ds002.pdf) 
+For more details, please refer section 6.1 of [BME280 datasheet](https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme280-ds002.pdf) 
 
 ### Bitbang sample code operation
 On addition to the BME280 operation sample, this can perform **bit-banging** I²C and SPI libralies ([bbI2C](https://github.com/teddokano/bitbang_I2C_controller_MicroPython) and [bbSPI](https://github.com/teddokano/bitbang_SPI_controller_MicroPython)) demo.  
@@ -30,7 +30,7 @@ This BME280.py can be used as a class library which supports both I²C and SPI b
 User don't need to tweak the code for interface changing but just giving an instance of the interface to constructor function. 
 
 ```python
-# An application sample using class driver in BME280.py
+# An application sample using class library in BME280.py
 from machine import Pin, I2C, SPI
 
 if USE_I2C:
@@ -144,3 +144,30 @@ bme  = BME280( intf, cs = Pin( 15 ) )   # to use GP15 as ChipSelect pin instead 
 > **Note**  
 > If `address` and `cs` are given for inapprppreate interface, the option will be just ignored.  
 > If both options are given, an invalid option will be ignored.  
+
+### Example of using AE-BME280
+[AE-BME280 (Japanese site)](https://akizukidenshi.com/catalog/g/gK-09421/) is a module using BME280.   
+![ae-bme280.JPG](https://github.com/teddokano/BME280_MicroPython/blob/main/reference/pic/ae-bme280.JPG)  
+_AE-BME280 module_   
+
+This module has single-inline 6 pins of VDD, GND, CSB, SDI SDO and SCK. This makes easy to wire on bread-board.  
+Following wiring diagram is a sample for I²C and SPI. Both interface operations can be tried by replacing the module in slots.  
+For **I²C**, ***F25~F30 slot*** can be used. For **SPI**, ***E25~E30 slot*** can be used. 
+
+
+![BME280_connection.png](https://github.com/teddokano/BME280_MicroPython/blob/main/reference/sch/BME280_connection.png)
+_Bread-board connections between AE-BME280 and Raspberry Pi Pico for both I²C and SPI_   
+
+![ae-bme280-i2c-spi.png](https://github.com/teddokano/BME280_MicroPython/blob/main/reference/pic/ae-bme280-i2c-spi.png)  
+_AE-BME280 slots for I²C and SPI_
+
+## References
+Reference|Link
+---|---
+BME280				|https://www.bosch-sensortec.com/products/environmental-sensors/humidity-sensors-bme280/
+BME280 datasheet	|https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme280-ds002.pdf
+AE-BME280(Japanese)	|https://akizukidenshi.com/catalog/g/gK-09421/
+Raspberry Pi Pico	|https://www.raspberrypi.com/products/raspberry-pi-pico/
+MicroPython			|https://micropython.org
+bbI2C				|https://github.com/teddokano/bitbang_I2C_controller_MicroPython
+bbSPI				|https://github.com/teddokano/bitbang_SPI_controller_MicroPython
