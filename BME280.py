@@ -327,7 +327,7 @@ class BME280_SPI( BME280_base ):
 		else:
 			return data[ 1: ]
 
-def BME280( interface, address = DEFAILT_ADDRESS, cs = None ):
+def BME280( interface, *, address = DEFAILT_ADDRESS, cs = None ):
 	"""
 	A constructor interface for BME280
 
@@ -370,7 +370,7 @@ def main():
 	#intf	= SPI( 1, 1000000, sck = Pin( 10 ), mosi = Pin( 11 ), miso = Pin( 12 ) )
 	#intf	= bbSPI( sck = Pin( 10 ), mosi = Pin( 11 ), miso = Pin( 12 ) )
 	
-	bme		= BME280( intf )	
+	bme		= BME280( intf, address = 0b1110111, cs = Pin( 15 ) )	
 	bme.show_dump()
 
 	while True:
