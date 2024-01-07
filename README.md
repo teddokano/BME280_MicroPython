@@ -9,7 +9,7 @@ This code operation is confirmed with MicroPython v1.22.0 on Raspberry Pi Pico
 ![bme280.jpg](https://github.com/teddokano/BME280_MicroPython/blob/main/reference/pic/bme280.jpg)
 _AE-BME280: A sensor module using BME280_
 
-## Purpose of this code
+## Purpose of this code (Why this code had been written?)
 ### A sample of BME280 operation using both I²C and SPI interfaces
 This code had been written to show samples of basic I²C and SPI operation using BME280.  
 The BME280 supports I²C and SPI interfaces. The interface can be switched by CSB pin setting. When the CSB pin is tied to VDDIO, it is configured for I²C. 
