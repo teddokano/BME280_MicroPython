@@ -4,7 +4,15 @@
 Sample code to operate a combined humidity and pressure sensor: [BME280](https://www.bosch-sensortec.com/products/environmental-sensors/humidity-sensors-bme280/).   
 The BME280 operation can be done with simple API through its class library.  
 
-This code operation is confirmed with MicroPython v1.22.0 on Raspberry Pi Pico  
+This code operation is checked with [MicroPython v1.22.1 on Raspberry Pi Pico](https://micropython.org/download/RPI_PICO/).  
+
+> **Note**  
+>  
+> CQ出版インターフェース誌2024年3月号(1月25日発売)の記事では，[リリース1.0.0](https://github.com/teddokano/BME280_MicroPython/releases/tag/1.0.0)がサンプルコードとして使われています．  
+> これよりあとのコードは，より汎用性を高めたものとなっています．記事と同じコードが必要な場合はリリース1.0.0を参照ください．
+> 
+> [リリース1.0.0](https://github.com/teddokano/BME280_MicroPython/releases/tag/1.0.0) is used as the sample code in the 2024 March issue (Jan 25 release) of [CQ-publishing "Interface" magazine](https://interface.cqpub.co.jp). 
+> Later code than 1.0.0 is version with better versatility. If you need identical version to the article, plase refer to release 1.0.0. 
 
 ![bme280.jpg](https://github.com/teddokano/BME280_MicroPython/blob/main/reference/pic/bme280.jpg)
 _AE-BME280: A sensor module using BME280_
