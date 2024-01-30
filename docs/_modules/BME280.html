@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BME280 &mdash; BME280_MicroPython 1.1.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=58fbf978"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            BME280_MicroPython
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../BME280.html">BME280 module</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">BME280_MicroPython</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">BME280</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for BME280</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">BME280 (combined humidity and pressure sensor) operation sample</span>
+<span class="sd">This code demonstrates basic feature of BME280. </span>
+<span class="sd">The BME280 supports I2C and SPI interfaces. Both interfaces are supported in this code. </span>
+<span class="sd">On addition to that, bbI2C and bbSPI classes are supported to perform the operation with those &quot;bit-bang&quot; interface classes. </span>
+<span class="sd">For bbI2C and bbSPI, see following repositories</span>
+<span class="sd">	bbI2C: https://github.com/teddokano/bitbang_I2C_controller_MicroPython</span>
+<span class="sd">	bbSPI: https://github.com/teddokano/bitbang_SPI_controller_MicroPython</span>
+<span class="sd">	</span>
+<span class="sd">This project is licensed under the MIT License, see LICENSE.txt file for details in </span>
+<span class="sd">https://github.com/teddokano/BME280_MicroPython</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span>	<span class="nn">machine</span>	<span class="kn">import</span>	<span class="n">Pin</span><span class="p">,</span> <span class="n">I2C</span><span class="p">,</span> <span class="n">SPI</span>
+<span class="kn">from</span>	<span class="nn">utime</span>	<span class="kn">import</span>	<span class="n">sleep</span><span class="p">,</span> <span class="n">sleep_ms</span>
+<span class="kn">from</span>	<span class="nn">struct</span>	<span class="kn">import</span>	<span class="n">unpack</span>
+
+<span class="k">try</span><span class="p">:</span>
+	<span class="kn">from</span>	<span class="nn">bbI2C</span>	<span class="kn">import</span>	<span class="n">bbI2C</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+	<span class="k">pass</span>
+	
+<span class="k">try</span><span class="p">:</span>
+	<span class="kn">from</span>	<span class="nn">bbSPI</span>	<span class="kn">import</span>	<span class="n">bbSPI</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+	<span class="k">pass</span>
+
+<span class="n">DEFAILT_ADDRESS</span>		<span class="o">=</span> <span class="mh">0xEC</span> <span class="o">&gt;&gt;</span><span class="mi">1</span>
+
+<div class="viewcode-block" id="BME280_base">
+<a class="viewcode-back" href="../BME280.html#BME280.BME280_base">[docs]</a>
+<span class="k">class</span> <span class="nc">BME280_base</span><span class="p">:</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	A class to operate a combined humidity and pressure sensor: BME280</span>
+<span class="sd">	</span>
+<span class="sd">	https://www.bosch-sensortec.com/products/environmental-sensors/humidity-sensors-bme280/</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		BME280 initializer</span>
+<span class="sd">	</span>
+<span class="sd">		Parameters</span>
+<span class="sd">		----------</span>
+<span class="sd">		i2c : obj</span>
+<span class="sd">			machine.I2C instance</span>
+<span class="sd">		address : int</span>
+<span class="sd">			I2C target (device) address</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		
+		<span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dig_T1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_T2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_T3</span><span class="p">)</span>		<span class="o">=</span> <span class="n">unpack</span><span class="p">(</span> <span class="s2">&quot;&lt;Hhh&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_reg</span><span class="p">(</span> <span class="mh">0x88</span><span class="p">,</span> <span class="mi">6</span> <span class="p">)</span> <span class="p">)</span>
+
+		<span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dig_P1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_P2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_P3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_P4</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_P5</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_P6</span><span class="p">,</span> 
+			<span class="bp">self</span><span class="o">.</span><span class="n">dig_P7</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_P8</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_P9</span><span class="p">)</span>	<span class="o">=</span> <span class="n">unpack</span><span class="p">(</span> <span class="s2">&quot;&lt;Hhhhhhhhh&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_reg</span><span class="p">(</span> <span class="mh">0x8E</span><span class="p">,</span> <span class="mi">18</span> <span class="p">)</span> <span class="p">)</span>
+			
+		<span class="bp">self</span><span class="o">.</span><span class="n">dig_H1</span>	<span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_reg</span><span class="p">(</span> <span class="mh">0xA1</span> <span class="p">)</span>
+		
+		<span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dig_H2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_H3</span><span class="p">,</span> <span class="n">E4</span><span class="p">,</span> <span class="n">E5</span><span class="p">,</span> <span class="n">E6</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_H6</span><span class="p">)</span>	<span class="o">=</span> <span class="n">unpack</span><span class="p">(</span> <span class="s2">&quot;&lt;hBbbbb&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_reg</span><span class="p">(</span> <span class="mh">0xE1</span><span class="p">,</span> <span class="mi">7</span> <span class="p">)</span> <span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">dig_H4</span>	<span class="o">=</span> <span class="p">(</span><span class="n">E4</span> <span class="o">&lt;&lt;</span> <span class="mi">4</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">E5</span> <span class="o">&amp;</span> <span class="mh">0x0F</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">dig_H5</span> <span class="o">=</span> <span class="p">(</span><span class="n">E6</span> <span class="o">&lt;&lt;</span> <span class="mi">4</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">E5</span> <span class="o">&gt;&gt;</span> <span class="mi">4</span><span class="p">)</span>
+		
+		<span class="bp">self</span><span class="o">.</span><span class="n">t_fine</span>	<span class="o">=</span> <span class="mi">0</span>
+
+		<span class="n">s</span>	<span class="o">=</span> <span class="mh">0x01</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">write_reg</span><span class="p">(</span> <span class="mh">0xF2</span><span class="p">,</span> <span class="n">s</span> <span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">write_reg</span><span class="p">(</span> <span class="mh">0xF4</span><span class="p">,</span> <span class="p">(</span><span class="n">s</span> <span class="o">&lt;&lt;</span> <span class="mi">5</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">s</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span><span class="p">)</span> <span class="o">|</span> <span class="mh">0x3</span> <span class="p">)</span>
+		
+		<span class="n">sleep_ms</span><span class="p">(</span> <span class="mi">14</span> <span class="p">)</span>	<span class="c1"># t_maesure(max) : waiting for first measurement complete (datasheet 9.1)</span>
+	
+<div class="viewcode-block" id="BME280_base.read">
+<a class="viewcode-back" href="../BME280.html#BME280.BME280_base.read">[docs]</a>
+	<span class="k">def</span> <span class="nf">read</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+		<span class="n">data</span> 	<span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_reg</span><span class="p">(</span> <span class="mh">0xF7</span><span class="p">,</span> <span class="mi">8</span> <span class="p">)</span>		
+		<span class="n">pH</span><span class="p">,</span> <span class="n">pL</span><span class="p">,</span> <span class="n">tH</span><span class="p">,</span> <span class="n">tL</span><span class="p">,</span> <span class="n">h</span>	<span class="o">=</span> <span class="n">unpack</span><span class="p">(</span> <span class="s2">&quot;&gt;HBHBH&quot;</span><span class="p">,</span> <span class="n">data</span> <span class="p">)</span>
+
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compensate_T</span><span class="p">(</span> <span class="n">tH</span> <span class="o">&lt;&lt;</span> <span class="mi">4</span> <span class="o">|</span> <span class="n">tL</span> <span class="o">&gt;&gt;</span> <span class="mi">4</span> <span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">compensate_P</span><span class="p">(</span> <span class="n">pH</span> <span class="o">&lt;&lt;</span> <span class="mi">4</span> <span class="o">|</span> <span class="n">pL</span> <span class="o">&gt;&gt;</span> <span class="mi">4</span> <span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">compensate_H</span><span class="p">(</span> <span class="n">h</span> <span class="p">)</span></div>
+
+	
+<div class="viewcode-block" id="BME280_base.temperature">
+<a class="viewcode-back" href="../BME280.html#BME280.BME280_base.temperature">[docs]</a>
+	<span class="k">def</span> <span class="nf">temperature</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		get temperature value in degree-C</span>
+<span class="sd">		</span>
+<span class="sd">		Returns</span>
+<span class="sd">		-------</span>
+<span class="sd">		float : temperature value in degree-C</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">data</span> 	<span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_reg</span><span class="p">(</span> <span class="mh">0xFA</span><span class="p">,</span> <span class="mi">3</span> <span class="p">)</span>
+		<span class="n">adc_T_High</span><span class="p">,</span> <span class="n">adc_T_Low</span>	<span class="o">=</span> <span class="n">unpack</span><span class="p">(</span> <span class="s2">&quot;&gt;HB&quot;</span><span class="p">,</span> <span class="n">data</span> <span class="p">)</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compensate_T</span><span class="p">(</span> <span class="n">adc_T_High</span> <span class="o">&lt;&lt;</span> <span class="mi">4</span> <span class="o">|</span> <span class="n">adc_T_Low</span> <span class="o">&gt;&gt;</span> <span class="mi">4</span> <span class="p">)</span></div>
+
+	
+<div class="viewcode-block" id="BME280_base.pressure">
+<a class="viewcode-back" href="../BME280.html#BME280.BME280_base.pressure">[docs]</a>
+	<span class="k">def</span> <span class="nf">pressure</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		get pressure value in hPa</span>
+<span class="sd">		</span>
+<span class="sd">		Returns</span>
+<span class="sd">		-------</span>
+<span class="sd">		float : pressure value in hPa</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">data</span> 	<span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_reg</span><span class="p">(</span> <span class="mh">0xF7</span><span class="p">,</span> <span class="mi">3</span> <span class="p">)</span>
+		<span class="n">adc_P_High</span><span class="p">,</span> <span class="n">adc_P_Low</span>	<span class="o">=</span> <span class="n">unpack</span><span class="p">(</span> <span class="s2">&quot;&gt;HB&quot;</span><span class="p">,</span> <span class="n">data</span> <span class="p">)</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compensate_P</span><span class="p">(</span> <span class="n">adc_P_High</span> <span class="o">&lt;&lt;</span> <span class="mi">4</span> <span class="o">|</span> <span class="n">adc_P_Low</span> <span class="o">&gt;&gt;</span> <span class="mi">4</span> <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BME280_base.humidity">
+<a class="viewcode-back" href="../BME280.html#BME280.BME280_base.humidity">[docs]</a>
+	<span class="k">def</span> <span class="nf">humidity</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		get humidity value in %RH</span>
+<span class="sd">		</span>
+<span class="sd">		Returns</span>
+<span class="sd">		-------</span>
+<span class="sd">		float : humidity value in %RH</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">data</span> 	<span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_reg</span><span class="p">(</span> <span class="mh">0xFD</span><span class="p">,</span> <span class="mi">2</span> <span class="p">)</span>
+		<span class="n">adc_H</span>	<span class="o">=</span> <span class="n">unpack</span><span class="p">(</span> <span class="s2">&quot;&gt;H&quot;</span><span class="p">,</span> <span class="n">data</span> <span class="p">)[</span> <span class="mi">0</span> <span class="p">]</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compensate_H</span><span class="p">(</span> <span class="n">adc_H</span> <span class="p">)</span></div>
+
+		
+<div class="viewcode-block" id="BME280_base.compensate_T">
+<a class="viewcode-back" href="../BME280.html#BME280.BME280_base.compensate_T">[docs]</a>
+	<span class="k">def</span> <span class="nf">compensate_T</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">adc_T</span> <span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Calculate temperature from sensor read value</span>
+<span class="sd">		</span>
+<span class="sd">		Parameters</span>
+<span class="sd">		----------</span>
+<span class="sd">		adc_T : int</span>
+<span class="sd">			read value form register 0xFA-0xFC as big-endian 20 bit integer</span>
+<span class="sd">			</span>
+<span class="sd">		Returns</span>
+<span class="sd">		-------</span>
+<span class="sd">		float : temperature value in degree-C</span>
+
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">var1</span>	<span class="o">=</span> <span class="p">((((</span><span class="n">adc_T</span> <span class="o">&gt;&gt;</span> <span class="mi">3</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dig_T1</span> <span class="o">&lt;&lt;</span> <span class="mi">1</span><span class="p">)))</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dig_T2</span><span class="p">))</span> <span class="o">&gt;&gt;</span> <span class="mi">11</span>
+		<span class="n">var2</span>	<span class="o">=</span> <span class="p">(((((</span><span class="n">adc_T</span> <span class="o">&gt;&gt;</span> <span class="mi">4</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dig_T1</span><span class="p">))</span> <span class="o">*</span> <span class="p">((</span><span class="n">adc_T</span> <span class="o">&gt;&gt;</span> <span class="mi">4</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dig_T1</span><span class="p">)))</span> <span class="o">&gt;&gt;</span> <span class="mi">12</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dig_T3</span><span class="p">))</span> <span class="o">&gt;&gt;</span> <span class="mi">14</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">t_fine</span>	<span class="o">=</span> <span class="n">var1</span> <span class="o">+</span> <span class="n">var2</span>
+		<span class="n">T</span>		<span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">t_fine</span> <span class="o">*</span> <span class="mi">5</span> <span class="o">+</span> <span class="mi">128</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="mi">8</span>
+		<span class="k">return</span> <span class="n">T</span> <span class="o">/</span> <span class="mi">100</span></div>
+
+
+<div class="viewcode-block" id="BME280_base.compensate_P">
+<a class="viewcode-back" href="../BME280.html#BME280.BME280_base.compensate_P">[docs]</a>
+	<span class="k">def</span> <span class="nf">compensate_P</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">adc_P</span> <span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Calculate pressure from sensor read value</span>
+<span class="sd">		</span>
+<span class="sd">		Parameters</span>
+<span class="sd">		----------</span>
+<span class="sd">		adc_P : int</span>
+<span class="sd">			read value form register 0xF7-0xF9 as big-endian 20 bit integer</span>
+<span class="sd">			</span>
+<span class="sd">		Returns</span>
+<span class="sd">		-------</span>
+<span class="sd">		float : temperature value in hPa</span>
+
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">var1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_fine</span> <span class="o">-</span> <span class="mi">128000</span>
+		<span class="n">var2</span> <span class="o">=</span> <span class="n">var1</span> <span class="o">*</span> <span class="n">var1</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_P6</span>
+		<span class="n">var2</span> <span class="o">=</span> <span class="n">var2</span> <span class="o">+</span> <span class="p">((</span><span class="n">var1</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_P5</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="mi">17</span><span class="p">)</span>
+		<span class="n">var2</span> <span class="o">=</span> <span class="n">var2</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dig_P4</span> <span class="o">&lt;&lt;</span> <span class="mi">35</span><span class="p">)</span>
+		<span class="n">var1</span> <span class="o">=</span> <span class="p">((</span><span class="n">var1</span> <span class="o">*</span> <span class="n">var1</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_P3</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">var1</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_P2</span> <span class="o">&lt;&lt;</span> <span class="mi">12</span><span class="p">)</span>
+		<span class="n">var1</span> <span class="o">=</span> <span class="p">(((</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">47</span><span class="p">)</span> <span class="o">+</span> <span class="n">var1</span><span class="p">))</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_P1</span> <span class="o">&gt;&gt;</span> <span class="mi">33</span>
+		
+		<span class="k">if</span> <span class="p">(</span><span class="n">var1</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+			<span class="k">return</span> <span class="mi">0</span>
+		
+		<span class="n">p</span> <span class="o">=</span> <span class="mi">1048576</span> <span class="o">-</span> <span class="n">adc_P</span>
+		<span class="n">p</span> <span class="o">=</span> <span class="p">(((</span><span class="n">p</span> <span class="o">&lt;&lt;</span> <span class="mi">31</span><span class="p">)</span> <span class="o">-</span> <span class="n">var2</span><span class="p">)</span> <span class="o">*</span> <span class="mi">3125</span><span class="p">)</span> <span class="o">//</span> <span class="n">var1</span>
+		<span class="n">var1</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dig_P9</span> <span class="o">*</span> <span class="p">(</span><span class="n">p</span> <span class="o">&gt;&gt;</span> <span class="mi">13</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">p</span> <span class="o">&gt;&gt;</span> <span class="mi">13</span><span class="p">))</span> <span class="o">&gt;&gt;</span> <span class="mi">25</span>
+		<span class="n">var2</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dig_P8</span> <span class="o">*</span> <span class="n">p</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="mi">19</span>
+		<span class="n">p</span> <span class="o">=</span> <span class="p">((</span><span class="n">p</span> <span class="o">+</span> <span class="n">var1</span> <span class="o">+</span> <span class="n">var2</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dig_P7</span> <span class="o">&lt;&lt;</span> <span class="mi">4</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">p</span> <span class="o">/</span> <span class="mi">25600</span></div>
+
+
+<div class="viewcode-block" id="BME280_base.compensate_H">
+<a class="viewcode-back" href="../BME280.html#BME280.BME280_base.compensate_H">[docs]</a>
+	<span class="k">def</span> <span class="nf">compensate_H</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">adc_H</span> <span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Calculate humidity from sensor read value</span>
+<span class="sd">		</span>
+<span class="sd">		Parameters</span>
+<span class="sd">		----------</span>
+<span class="sd">		adc_H : int</span>
+<span class="sd">			read value form register 0xFD and 0xFE as big-endian 16 bit integer</span>
+<span class="sd">			</span>
+<span class="sd">		Returns</span>
+<span class="sd">		-------</span>
+<span class="sd">		float : temperature value in %RH</span>
+<span class="sd">		</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">v_x1_u32r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_fine</span> <span class="o">-</span> <span class="mi">76800</span>
+		<span class="n">v_x1_u32r</span> <span class="o">=</span> <span class="p">(((((</span><span class="n">adc_H</span> <span class="o">&lt;&lt;</span> <span class="mi">14</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dig_H4</span> <span class="o">&lt;&lt;</span> <span class="mi">20</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dig_H5</span> <span class="o">*</span> <span class="n">v_x1_u32r</span><span class="p">))</span> <span class="o">+</span> <span class="mi">16384</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="mi">15</span><span class="p">)</span> <span class="o">*</span> <span class="p">(((((((</span><span class="n">v_x1_u32r</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_H6</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="mi">10</span><span class="p">)</span> <span class="o">*</span> <span class="p">(((</span><span class="n">v_x1_u32r</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_H3</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="mi">11</span><span class="p">)</span> <span class="o">+</span> <span class="mi">32768</span><span class="p">))</span> <span class="o">&gt;&gt;</span> <span class="mi">10</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2097152</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_H2</span> <span class="o">+</span> <span class="mi">8192</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="mi">14</span><span class="p">))</span>
+		<span class="n">v_x1_u32r</span> <span class="o">=</span> <span class="p">(</span><span class="n">v_x1_u32r</span> <span class="o">-</span> <span class="p">(((((</span><span class="n">v_x1_u32r</span> <span class="o">&gt;&gt;</span> <span class="mi">15</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">v_x1_u32r</span> <span class="o">&gt;&gt;</span> <span class="mi">15</span><span class="p">))</span> <span class="o">&gt;&gt;</span> <span class="mi">7</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dig_H1</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="mi">4</span><span class="p">))</span>
+		<span class="n">v_x1_u32r</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="p">(</span><span class="n">v_x1_u32r</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="k">else</span> <span class="n">v_x1_u32r</span>
+		<span class="n">v_x1_u32r</span> <span class="o">=</span> <span class="mi">419430400</span> <span class="k">if</span> <span class="p">(</span><span class="n">v_x1_u32r</span> <span class="o">&gt;</span> <span class="mi">419430400</span><span class="p">)</span> <span class="k">else</span> <span class="n">v_x1_u32r</span>
+		<span class="k">return</span> <span class="p">(</span><span class="n">v_x1_u32r</span> <span class="o">&gt;&gt;</span> <span class="mi">12</span><span class="p">)</span> <span class="o">/</span> <span class="mi">1024</span></div>
+
+
+<div class="viewcode-block" id="BME280_base.show_reg">
+<a class="viewcode-back" href="../BME280.html#BME280.BME280_base.show_reg">[docs]</a>
+	<span class="k">def</span> <span class="nf">show_reg</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">r</span> <span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Print register value</span>
+<span class="sd">		</span>
+<span class="sd">		Parameters</span>
+<span class="sd">		----------</span>
+<span class="sd">		r : int</span>
+<span class="sd">			Register address			</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="nb">print</span><span class="p">(</span> <span class="s2">&quot;reg:0x</span><span class="si">{:02X}</span><span class="s2"> = 0x</span><span class="si">{:02X}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span> <span class="n">r</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_reg</span><span class="p">(</span> <span class="n">r</span> <span class="p">)</span> <span class="p">)</span> <span class="p">)</span></div>
+
+		
+<div class="viewcode-block" id="BME280_base.show_dump">
+<a class="viewcode-back" href="../BME280.html#BME280.BME280_base.show_dump">[docs]</a>
+	<span class="k">def</span> <span class="nf">show_dump</span><span class="p">(</span> <span class="bp">self</span> <span class="p">):</span>
+		<span class="n">reg_list</span>	<span class="o">=</span> <span class="p">[</span> <span class="mh">0xF2</span><span class="p">,</span> <span class="mh">0xF3</span><span class="p">,</span> <span class="mh">0xF4</span><span class="p">,</span> <span class="mh">0xF5</span> <span class="p">]</span>
+		
+		<span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">reg_list</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">show_reg</span><span class="p">(</span> <span class="n">r</span> <span class="p">)</span></div>
+</div>
+
+
+<div class="viewcode-block" id="BME280_I2C">
+<a class="viewcode-back" href="../BME280.html#BME280.BME280_I2C">[docs]</a>
+<span class="k">class</span> <span class="nc">BME280_I2C</span><span class="p">(</span> <span class="n">BME280_base</span> <span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">i2c</span><span class="p">,</span> <span class="n">address</span> <span class="o">=</span> <span class="n">DEFAILT_ADDRESS</span> <span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		BME280 initializer</span>
+<span class="sd">	</span>
+<span class="sd">		Parameters</span>
+<span class="sd">		----------</span>
+<span class="sd">		i2c : obj</span>
+<span class="sd">			machine.I2C instance</span>
+<span class="sd">		address : int</span>
+<span class="sd">			I2C target (device) address</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">__i2c</span>	<span class="o">=</span> <span class="n">i2c</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">__addr</span>	<span class="o">=</span> <span class="n">address</span>
+		
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+<div class="viewcode-block" id="BME280_I2C.write_reg">
+<a class="viewcode-back" href="../BME280.html#BME280.BME280_I2C.write_reg">[docs]</a>
+	<span class="k">def</span> <span class="nf">write_reg</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">v</span> <span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Write register</span>
+<span class="sd">		</span>
+<span class="sd">		Parameters</span>
+<span class="sd">		----------</span>
+<span class="sd">		r : int</span>
+<span class="sd">			Register address			</span>
+<span class="sd">		v : int</span>
+<span class="sd">			Value to write into the register	</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">__i2c</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">__addr</span><span class="p">,</span> <span class="nb">bytearray</span><span class="p">(</span> <span class="p">[</span> <span class="n">r</span><span class="p">,</span> <span class="n">v</span> <span class="p">]</span> <span class="p">)</span> <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BME280_I2C.read_reg">
+<a class="viewcode-back" href="../BME280.html#BME280.BME280_I2C.read_reg">[docs]</a>
+	<span class="k">def</span> <span class="nf">read_reg</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="nb">len</span> <span class="o">=</span> <span class="kc">None</span> <span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Read register</span>
+<span class="sd">		</span>
+<span class="sd">		Parameters</span>
+<span class="sd">		----------</span>
+<span class="sd">		r : int</span>
+<span class="sd">			Register address			</span>
+<span class="sd">		len : int (option)</span>
+<span class="sd">			Read length	</span>
+
+<span class="sd">		Returns</span>
+<span class="sd">		-------</span>
+<span class="sd">		int : 		If len was not given or 1</span>
+<span class="sd">		bytearray : If len was &gt;1</span>
+<span class="sd">		</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="nb">len</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="nb">len</span>	<span class="o">=</span> <span class="mi">1</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">__i2c</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">__addr</span><span class="p">,</span> <span class="nb">bytearray</span><span class="p">(</span> <span class="p">[</span> <span class="n">r</span> <span class="p">]</span> <span class="p">),</span> <span class="kc">False</span> <span class="p">)</span>
+		
+		<span class="n">data</span>	<span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__i2c</span><span class="o">.</span><span class="n">readfrom</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">__addr</span><span class="p">,</span> <span class="nb">len</span> <span class="p">)</span>
+		
+		<span class="k">if</span> <span class="nb">len</span> <span class="ow">is</span> <span class="mi">1</span><span class="p">:</span>
+			<span class="k">return</span> <span class="nb">list</span><span class="p">(</span> <span class="n">data</span> <span class="p">)[</span> <span class="mi">0</span> <span class="p">]</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">data</span></div>
+</div>
+
+		
+<div class="viewcode-block" id="BME280_SPI">
+<a class="viewcode-back" href="../BME280.html#BME280.BME280_SPI">[docs]</a>
+<span class="k">class</span> <span class="nc">BME280_SPI</span><span class="p">(</span> <span class="n">BME280_base</span> <span class="p">):</span>
+	<span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">spi</span><span class="p">,</span> <span class="n">cs</span> <span class="o">=</span> <span class="kc">None</span> <span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		BME280 initializer</span>
+<span class="sd">	</span>
+<span class="sd">		Parameters</span>
+<span class="sd">		----------</span>
+<span class="sd">		spi : obj</span>
+<span class="sd">			machine.SPI instance</span>
+<span class="sd">		cs : obj</span>
+<span class="sd">			machine.Pin instance for chip_select</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		
+		<span class="bp">self</span><span class="o">.</span><span class="n">__spi</span>	<span class="o">=</span> <span class="n">spi</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">__cs</span>	<span class="o">=</span> <span class="n">cs</span> <span class="k">if</span> <span class="n">cs</span> <span class="k">else</span> <span class="n">Pin</span><span class="p">(</span> <span class="mi">13</span> <span class="p">)</span>
+		
+		<span class="bp">self</span><span class="o">.</span><span class="n">__cs</span><span class="o">.</span><span class="n">init</span><span class="p">(</span> <span class="n">Pin</span><span class="o">.</span><span class="n">OUT</span> <span class="p">)</span>
+		
+		<span class="bp">self</span><span class="o">.</span><span class="n">__cs</span><span class="o">.</span><span class="n">value</span><span class="p">(</span> <span class="mi">1</span> <span class="p">)</span>
+		<span class="n">sleep_ms</span><span class="p">(</span> <span class="mi">2</span> <span class="p">)</span>	<span class="c1"># Wait until SPI read become ready</span>
+
+		<span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="BME280_SPI.write_reg">
+<a class="viewcode-back" href="../BME280.html#BME280.BME280_SPI.write_reg">[docs]</a>
+	<span class="k">def</span> <span class="nf">write_reg</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">v</span> <span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Write register</span>
+<span class="sd">		</span>
+<span class="sd">		Parameters</span>
+<span class="sd">		----------</span>
+<span class="sd">		r : int</span>
+<span class="sd">			Register address			</span>
+<span class="sd">		v : int</span>
+<span class="sd">			Value to write into the register	</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		
+		<span class="n">data</span>	<span class="o">=</span> <span class="nb">bytearray</span><span class="p">(</span> <span class="p">[</span> <span class="n">r</span> <span class="o">&amp;</span> <span class="mh">0x7F</span><span class="p">,</span> <span class="n">v</span> <span class="p">]</span> <span class="p">)</span>
+		
+		<span class="bp">self</span><span class="o">.</span><span class="n">__cs</span><span class="o">.</span><span class="n">value</span><span class="p">(</span> <span class="mi">0</span> <span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">__spi</span><span class="o">.</span><span class="n">write_readinto</span><span class="p">(</span> <span class="n">data</span><span class="p">,</span> <span class="n">data</span> <span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">__cs</span><span class="o">.</span><span class="n">value</span><span class="p">(</span> <span class="mi">1</span> <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BME280_SPI.read_reg">
+<a class="viewcode-back" href="../BME280.html#BME280.BME280_SPI.read_reg">[docs]</a>
+	<span class="k">def</span> <span class="nf">read_reg</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="nb">len</span> <span class="o">=</span> <span class="kc">None</span> <span class="p">):</span>
+<span class="w">		</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Read register</span>
+<span class="sd">		</span>
+<span class="sd">		Parameters</span>
+<span class="sd">		----------</span>
+<span class="sd">		r : int</span>
+<span class="sd">			Register address			</span>
+<span class="sd">		len : int (option)</span>
+<span class="sd">			Read length	</span>
+
+<span class="sd">		Returns</span>
+<span class="sd">		-------</span>
+<span class="sd">		int : 		If len was not given or 1</span>
+<span class="sd">		bytearray : If len was &gt;1</span>
+<span class="sd">		</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="nb">len</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+			<span class="nb">len</span>	<span class="o">=</span> <span class="mi">1</span>
+			
+		<span class="n">data</span>	<span class="o">=</span> <span class="nb">bytearray</span><span class="p">(</span> <span class="p">[</span> <span class="n">r</span> <span class="o">|</span> <span class="mh">0x80</span> <span class="p">]</span> <span class="o">+</span> <span class="p">[</span> <span class="mh">0xFF</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="nb">len</span> <span class="p">)</span> <span class="p">]</span> <span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">__cs</span><span class="o">.</span><span class="n">value</span><span class="p">(</span> <span class="mi">0</span> <span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">__spi</span><span class="o">.</span><span class="n">write_readinto</span><span class="p">(</span> <span class="n">data</span><span class="p">,</span> <span class="n">data</span> <span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">__cs</span><span class="o">.</span><span class="n">value</span><span class="p">(</span> <span class="mi">1</span> <span class="p">)</span>
+
+		<span class="k">if</span> <span class="nb">len</span> <span class="ow">is</span> <span class="mi">1</span><span class="p">:</span>
+			<span class="k">return</span> <span class="nb">list</span><span class="p">(</span> <span class="n">data</span> <span class="p">)[</span> <span class="mi">1</span> <span class="p">]</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">data</span><span class="p">[</span> <span class="mi">1</span><span class="p">:</span> <span class="p">]</span></div>
+</div>
+
+
+<div class="viewcode-block" id="BME280">
+<a class="viewcode-back" href="../BME280.html#BME280.BME280">[docs]</a>
+<span class="k">def</span> <span class="nf">BME280</span><span class="p">(</span> <span class="n">interface</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">address</span> <span class="o">=</span> <span class="n">DEFAILT_ADDRESS</span><span class="p">,</span> <span class="n">cs</span> <span class="o">=</span> <span class="kc">None</span> <span class="p">):</span>
+<span class="w">	</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	A constructor interface for BME280</span>
+
+<span class="sd">	Parameters</span>
+<span class="sd">	----------</span>
+<span class="sd">	interface	: obj</span>
+<span class="sd">		machine.I2C or machine.SPI object</span>
+<span class="sd">	address		: int (option)</span>
+<span class="sd">		If need to specify (for I2C interface)</span>
+<span class="sd">	cs			: machine.Pin object (option)</span>
+<span class="sd">		If need to specify (for SPI interface)</span>
+
+<span class="sd">	Returns</span>
+<span class="sd">	-------</span>
+<span class="sd">	BME280_I2C or BME280_SPI object</span>
+<span class="sd">		returns BME280_I2C when interface is I2C or bbI2C</span>
+<span class="sd">		returns BME280_SPI when interface is SPI or bbSPI</span>
+
+<span class="sd">	Examples</span>
+<span class="sd">	--------</span>
+<span class="sd">	For using I2C</span>
+<span class="sd">		&gt;&gt;&gt; intf = I2C( 0, freq = (400 * 1000) )</span>
+<span class="sd">		&gt;&gt;&gt; rtc  = BME280( intf )</span>
+<span class="sd">	For using SPI</span>
+<span class="sd">		&gt;&gt;&gt; intf = SPI( 0, 500 * 1000, cs = 0 )</span>
+<span class="sd">		&gt;&gt;&gt; rtc  = BME280( intf )</span>
+<span class="sd">	</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">interface</span><span class="p">,</span> <span class="n">I2C</span> <span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">interface</span><span class="p">,</span> <span class="n">bbI2C</span> <span class="p">):</span>
+		<span class="k">return</span> <span class="n">BME280_I2C</span><span class="p">(</span> <span class="n">interface</span><span class="p">,</span> <span class="n">address</span> <span class="p">)</span>
+
+	<span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">interface</span><span class="p">,</span> <span class="n">SPI</span> <span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span> <span class="n">interface</span><span class="p">,</span> <span class="n">bbSPI</span> <span class="p">):</span>
+		<span class="k">return</span> <span class="n">BME280_SPI</span><span class="p">(</span> <span class="n">interface</span><span class="p">,</span> <span class="n">cs</span> <span class="p">)</span></div>
+
+
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../BME280.html#BME280.main">[docs]</a>
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+	<span class="n">intf</span>	<span class="o">=</span> <span class="n">I2C</span><span class="p">(</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sda</span> <span class="o">=</span> <span class="n">Pin</span><span class="p">(</span> <span class="mi">0</span> <span class="p">),</span> <span class="n">scl</span> <span class="o">=</span> <span class="n">Pin</span><span class="p">(</span> <span class="mi">1</span> <span class="p">)</span> <span class="p">)</span>
+	<span class="c1">#intf	= bbI2C( sda = Pin( 0 ), scl = Pin( 1 ) )</span>
+	<span class="c1">#intf	= SPI( 1, 1000000, sck = Pin( 10 ), mosi = Pin( 11 ), miso = Pin( 12 ) )</span>
+	<span class="c1">#intf	= bbSPI( sck = Pin( 10 ), mosi = Pin( 11 ), miso = Pin( 12 ) )</span>
+	
+	<span class="n">bme</span>		<span class="o">=</span> <span class="n">BME280</span><span class="p">(</span> <span class="n">intf</span> <span class="p">)</span>	
+	<span class="n">bme</span><span class="o">.</span><span class="n">show_dump</span><span class="p">()</span>
+
+	<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+		<span class="n">t</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">h</span>	<span class="o">=</span> <span class="n">bme</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+		<span class="nb">print</span><span class="p">(</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">t</span><span class="si">:</span><span class="s2">5.2f</span><span class="si">}</span><span class="s2"> ℃, </span><span class="si">{</span><span class="n">p</span><span class="si">:</span><span class="s2">7.2f</span><span class="si">}</span><span class="s2"> hPa, </span><span class="si">{</span><span class="n">h</span><span class="si">:</span><span class="s2">5.2f</span><span class="si">}</span><span class="s2"> %RH&quot;</span> <span class="p">)</span>
+		<span class="n">sleep</span><span class="p">(</span> <span class="mi">1</span> <span class="p">)</span></div>
+
+		
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+	<span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Tedd OKANO.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

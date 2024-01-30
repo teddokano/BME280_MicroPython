@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BME280 module &mdash; BME280_MicroPython 1.1.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=58fbf978"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Welcome to BME280_MicroPython’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            BME280_MicroPython
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">BME280 module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#BME280.BME280"><code class="docutils literal notranslate"><span class="pre">BME280()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#BME280.BME280_I2C"><code class="docutils literal notranslate"><span class="pre">BME280_I2C</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#BME280.BME280_I2C.read_reg"><code class="docutils literal notranslate"><span class="pre">BME280_I2C.read_reg()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#BME280.BME280_I2C.write_reg"><code class="docutils literal notranslate"><span class="pre">BME280_I2C.write_reg()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#BME280.BME280_SPI"><code class="docutils literal notranslate"><span class="pre">BME280_SPI</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#BME280.BME280_SPI.read_reg"><code class="docutils literal notranslate"><span class="pre">BME280_SPI.read_reg()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#BME280.BME280_SPI.write_reg"><code class="docutils literal notranslate"><span class="pre">BME280_SPI.write_reg()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#BME280.BME280_base"><code class="docutils literal notranslate"><span class="pre">BME280_base</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#BME280.BME280_base.compensate_H"><code class="docutils literal notranslate"><span class="pre">BME280_base.compensate_H()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#BME280.BME280_base.compensate_P"><code class="docutils literal notranslate"><span class="pre">BME280_base.compensate_P()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#BME280.BME280_base.compensate_T"><code class="docutils literal notranslate"><span class="pre">BME280_base.compensate_T()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#BME280.BME280_base.humidity"><code class="docutils literal notranslate"><span class="pre">BME280_base.humidity()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#BME280.BME280_base.pressure"><code class="docutils literal notranslate"><span class="pre">BME280_base.pressure()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#BME280.BME280_base.read"><code class="docutils literal notranslate"><span class="pre">BME280_base.read()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#BME280.BME280_base.show_dump"><code class="docutils literal notranslate"><span class="pre">BME280_base.show_dump()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#BME280.BME280_base.show_reg"><code class="docutils literal notranslate"><span class="pre">BME280_base.show_reg()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#BME280.BME280_base.temperature"><code class="docutils literal notranslate"><span class="pre">BME280_base.temperature()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#BME280.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">BME280_MicroPython</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">BME280 module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/BME280.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-BME280">
+<span id="bme280-module"></span><h1>BME280 module<a class="headerlink" href="#module-BME280" title="Link to this heading"></a></h1>
+<p>BME280 (combined humidity and pressure sensor) operation sample
+This code demonstrates basic feature of BME280.
+The BME280 supports I2C and SPI interfaces. Both interfaces are supported in this code.
+On addition to that, bbI2C and bbSPI classes are supported to perform the operation with those “bit-bang” interface classes.
+For bbI2C and bbSPI, see following repositories</p>
+<blockquote>
+<div><p>bbI2C: <a class="reference external" href="https://github.com/teddokano/bitbang_I2C_controller_MicroPython">https://github.com/teddokano/bitbang_I2C_controller_MicroPython</a>
+bbSPI: <a class="reference external" href="https://github.com/teddokano/bitbang_SPI_controller_MicroPython">https://github.com/teddokano/bitbang_SPI_controller_MicroPython</a></p>
+</div></blockquote>
+<p>This project is licensed under the MIT License, see LICENSE.txt file for details in
+<a class="reference external" href="https://github.com/teddokano/BME280_MicroPython">https://github.com/teddokano/BME280_MicroPython</a></p>
+<dl class="py function">
+<dt class="sig sig-object py" id="BME280.BME280">
+<span class="sig-prename descclassname"><span class="pre">BME280.</span></span><span class="sig-name descname"><span class="pre">BME280</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interface</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">address</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">118</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/BME280.html#BME280"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BME280.BME280" title="Link to this definition"></a></dt>
+<dd><p>A constructor interface for BME280</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interface</strong> (<em>obj</em>) – machine.I2C or machine.SPI object</p></li>
+<li><p><strong>address</strong> (<em>int</em><em> (</em><em>option</em><em>)</em>) – If need to specify (for I2C interface)</p></li>
+<li><p><strong>cs</strong> (<em>machine.Pin object</em><em> (</em><em>option</em><em>)</em>) – If need to specify (for SPI interface)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>returns BME280_I2C when interface is I2C or bbI2C
+returns BME280_SPI when interface is SPI or bbSPI</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#BME280.BME280_I2C" title="BME280.BME280_I2C">BME280_I2C</a> or BME280_SPI object</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<dl>
+<dt>For using I2C</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">intf</span> <span class="o">=</span> <span class="n">I2C</span><span class="p">(</span> <span class="mi">0</span><span class="p">,</span> <span class="n">freq</span> <span class="o">=</span> <span class="p">(</span><span class="mi">400</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rtc</span>  <span class="o">=</span> <span class="n">BME280</span><span class="p">(</span> <span class="n">intf</span> <span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+<dt>For using SPI</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">intf</span> <span class="o">=</span> <span class="n">SPI</span><span class="p">(</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">500</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">cs</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rtc</span>  <span class="o">=</span> <span class="n">BME280</span><span class="p">(</span> <span class="n">intf</span> <span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="BME280.BME280_I2C">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">BME280.</span></span><span class="sig-name descname"><span class="pre">BME280_I2C</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i2c</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">address</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">118</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/BME280.html#BME280_I2C"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BME280.BME280_I2C" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#BME280.BME280_base" title="BME280.BME280_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">BME280_base</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="BME280.BME280_I2C.read_reg">
+<span class="sig-name descname"><span class="pre">read_reg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">len</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/BME280.html#BME280_I2C.read_reg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BME280.BME280_I2C.read_reg" title="Link to this definition"></a></dt>
+<dd><p>Read register</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>r</strong> (<em>int</em>) – Register address</p></li>
+<li><p><strong>len</strong> (<em>int</em><em> (</em><em>option</em><em>)</em>) – Read length</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>int</strong> (<em>If len was not given or 1</em>)</p></li>
+<li><p><strong>bytearray</strong> (<em>If len was &gt;1</em>)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="BME280.BME280_I2C.write_reg">
+<span class="sig-name descname"><span class="pre">write_reg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/BME280.html#BME280_I2C.write_reg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BME280.BME280_I2C.write_reg" title="Link to this definition"></a></dt>
+<dd><p>Write register</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>r</strong> (<em>int</em>) – Register address</p></li>
+<li><p><strong>v</strong> (<em>int</em>) – Value to write into the register</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="BME280.BME280_SPI">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">BME280.</span></span><span class="sig-name descname"><span class="pre">BME280_SPI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/BME280.html#BME280_SPI"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BME280.BME280_SPI" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#BME280.BME280_base" title="BME280.BME280_base"><code class="xref py py-class docutils literal notranslate"><span class="pre">BME280_base</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="BME280.BME280_SPI.read_reg">
+<span class="sig-name descname"><span class="pre">read_reg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">len</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/BME280.html#BME280_SPI.read_reg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BME280.BME280_SPI.read_reg" title="Link to this definition"></a></dt>
+<dd><p>Read register</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>r</strong> (<em>int</em>) – Register address</p></li>
+<li><p><strong>len</strong> (<em>int</em><em> (</em><em>option</em><em>)</em>) – Read length</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>int</strong> (<em>If len was not given or 1</em>)</p></li>
+<li><p><strong>bytearray</strong> (<em>If len was &gt;1</em>)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="BME280.BME280_SPI.write_reg">
+<span class="sig-name descname"><span class="pre">write_reg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/BME280.html#BME280_SPI.write_reg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BME280.BME280_SPI.write_reg" title="Link to this definition"></a></dt>
+<dd><p>Write register</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>r</strong> (<em>int</em>) – Register address</p></li>
+<li><p><strong>v</strong> (<em>int</em>) – Value to write into the register</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="BME280.BME280_base">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">BME280.</span></span><span class="sig-name descname"><span class="pre">BME280_base</span></span><a class="reference internal" href="_modules/BME280.html#BME280_base"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BME280.BME280_base" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class to operate a combined humidity and pressure sensor: BME280</p>
+<p><a class="reference external" href="https://www.bosch-sensortec.com/products/environmental-sensors/humidity-sensors-bme280/">https://www.bosch-sensortec.com/products/environmental-sensors/humidity-sensors-bme280/</a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="BME280.BME280_base.compensate_H">
+<span class="sig-name descname"><span class="pre">compensate_H</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adc_H</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/BME280.html#BME280_base.compensate_H"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BME280.BME280_base.compensate_H" title="Link to this definition"></a></dt>
+<dd><p>Calculate humidity from sensor read value</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>adc_H</strong> (<em>int</em>) – read value form register 0xFD and 0xFE as big-endian 16 bit integer</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>float</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>temperature value in %RH</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="BME280.BME280_base.compensate_P">
+<span class="sig-name descname"><span class="pre">compensate_P</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adc_P</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/BME280.html#BME280_base.compensate_P"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BME280.BME280_base.compensate_P" title="Link to this definition"></a></dt>
+<dd><p>Calculate pressure from sensor read value</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>adc_P</strong> (<em>int</em>) – read value form register 0xF7-0xF9 as big-endian 20 bit integer</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>float</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>temperature value in hPa</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="BME280.BME280_base.compensate_T">
+<span class="sig-name descname"><span class="pre">compensate_T</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adc_T</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/BME280.html#BME280_base.compensate_T"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BME280.BME280_base.compensate_T" title="Link to this definition"></a></dt>
+<dd><p>Calculate temperature from sensor read value</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>adc_T</strong> (<em>int</em>) – read value form register 0xFA-0xFC as big-endian 20 bit integer</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>float</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>temperature value in degree-C</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="BME280.BME280_base.humidity">
+<span class="sig-name descname"><span class="pre">humidity</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/BME280.html#BME280_base.humidity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BME280.BME280_base.humidity" title="Link to this definition"></a></dt>
+<dd><p>get humidity value in %RH</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>float</strong></p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>humidity value in %RH</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="BME280.BME280_base.pressure">
+<span class="sig-name descname"><span class="pre">pressure</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/BME280.html#BME280_base.pressure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BME280.BME280_base.pressure" title="Link to this definition"></a></dt>
+<dd><p>get pressure value in hPa</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>float</strong></p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>pressure value in hPa</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="BME280.BME280_base.read">
+<span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/BME280.html#BME280_base.read"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BME280.BME280_base.read" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="BME280.BME280_base.show_dump">
+<span class="sig-name descname"><span class="pre">show_dump</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/BME280.html#BME280_base.show_dump"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BME280.BME280_base.show_dump" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="BME280.BME280_base.show_reg">
+<span class="sig-name descname"><span class="pre">show_reg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/BME280.html#BME280_base.show_reg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BME280.BME280_base.show_reg" title="Link to this definition"></a></dt>
+<dd><p>Print register value</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>r</strong> (<em>int</em>) – Register address</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="BME280.BME280_base.temperature">
+<span class="sig-name descname"><span class="pre">temperature</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/BME280.html#BME280_base.temperature"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BME280.BME280_base.temperature" title="Link to this definition"></a></dt>
+<dd><p>get temperature value in degree-C</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>float</strong></p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>temperature value in degree-C</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="BME280.main">
+<span class="sig-prename descclassname"><span class="pre">BME280.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/BME280.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#BME280.main" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to BME280_MicroPython’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Tedd OKANO.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,7 @@
+BME280 module
+=============
+
+.. automodule:: BME280
+   :members:
+   :undoc-members:
+   :show-inheritance:
