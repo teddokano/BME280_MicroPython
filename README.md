@@ -54,6 +54,8 @@ while True:
     sleep( 1 )
 ```
 
+### API documents
+API document is available [here](https://teddokano.github.io/BME280_MicroPython/)  
 
 ### When the `BME280.py` is executed alone
 A main function is executed.  
@@ -168,6 +170,16 @@ _Bread-board connections between AE-BME280 and Raspberry Pi Pico for both I²C a
 
 ![ae-bme280-i2c-spi.png](https://github.com/teddokano/BME280_MicroPython/blob/main/reference/pic/ae-bme280-i2c-spi.png)  
 _AE-BME280 slots for I²C and SPI_
+
+## Tips
+### When you modify docstring
+When you modify docstring in the code, API document files in `doc/` can be updated in following two commands.  
+```
+sphinx-apidoc -f -o ./docs/docs_gene .
+```
+```
+sphinx-build ./docs/docs_gene ./docs
+```  
 
 ## References
 Reference|Link
