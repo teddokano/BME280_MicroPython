@@ -365,8 +365,10 @@ def BME280( interface, *, address = DEFAILT_ADDRESS, cs = None ):
 
 
 def main():
-	intf	= I2C( 0, sda = Pin( 0 ), scl = Pin( 1 ) )
-	#intf	= bbI2C( sda = Pin( 0 ), scl = Pin( 1 ) )
+	init_pins()	#	to make all related pins get Hi-Z
+	
+	#intf	= I2C( 0, sda = Pin( 0 ), scl = Pin( 1 ) )
+	intf	= bbI2C( sda = Pin( 0 ), scl = Pin( 1 ) )
 	#intf	= SPI( 1, 1000000, sck = Pin( 10 ), mosi = Pin( 11 ), miso = Pin( 12 ) )
 	#intf	= bbSPI( sck = Pin( 10 ), mosi = Pin( 11 ), miso = Pin( 12 ) )
 	
@@ -377,7 +379,15 @@ def main():
 		t, p, h	= bme.read()
 		print( f"{t:5.2f} ℃, {p:7.2f} hPa, {h:5.2f} %RH" )
 		sleep( 1 )
+
+def init_pins():
+	pins	= ( 0, 1, 10, 11, 12, 13 )
+	
+	for pn in pins:
+		p	= Pin( pn )
+		p.init(Pin.IN)
 		
+
 if __name__ == "__main__":
 	main()
 
